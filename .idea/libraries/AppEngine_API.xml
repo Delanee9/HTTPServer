@@ -1,0 +1,14 @@
+<component name="libraryTable">
+  <library name="AppEngine API">
+    <CLASSES>
+      <root url="file:///etc/google-app-engine-sdk/lib/user" />
+      <root url="file:///etc/google-app-engine-sdk/lib/opt/user/appengine-endpoints/v1" />
+      <root url="file:///etc/google-app-engine-sdk/lib/opt/user/jsr107/v1" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file:///etc/google-app-engine-sdk/lib/opt/user/appengine-endpoints/v1" recursive="false" />
+    <jarDirectory url="file:///etc/google-app-engine-sdk/lib/opt/user/jsr107/v1" recursive="false" />
+    <jarDirectory url="file:///etc/google-app-engine-sdk/lib/user" recursive="false" />
+  </library>
+</component>

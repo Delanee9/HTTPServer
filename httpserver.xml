@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="httpserver" default="all">
+  
+  
+  <property file="httpserver.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/SCCS/**"/>
+    <exclude name="**/RCS/**"/>
+    <exclude name="**/rcs/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/.pyc/**"/>
+    <exclude name="**/.pyo/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/*.lib/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/.bundle/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.war"/>
+    <include name="*.ear"/>
+    <include name="*.apk"/>
+    <include name="*.zip"/>
+    <include name="*.swc"/>
+    <include name="*.ane"/>
+    <include name="*.egg"/>
+    <include name="*.jar"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  <!-- JDK definitions -->
+  
+  <property name="jdk.bin.1.8" value="${jdk.home.1.8}/bin"/>
+  <path id="jdk.classpath.1.8">
+    <fileset dir="${jdk.home.1.8}">
+      <include name="jre/lib/javaws.jar"/>
+      <include name="jre/lib/jfxswt.jar"/>
+      <include name="jre/lib/deploy.jar"/>
+      <include name="jre/lib/rt.jar"/>
+      <include name="jre/lib/jfr.jar"/>
+      <include name="jre/lib/resources.jar"/>
+      <include name="jre/lib/charsets.jar"/>
+      <include name="jre/lib/jsse.jar"/>
+      <include name="jre/lib/jce.jar"/>
+      <include name="jre/lib/management-agent.jar"/>
+      <include name="jre/lib/plugin.jar"/>
+      <include name="jre/lib/ext/cldrdata.jar"/>
+      <include name="jre/lib/ext/nashorn.jar"/>
+      <include name="jre/lib/ext/zipfs.jar"/>
+      <include name="jre/lib/ext/jfxrt.jar"/>
+      <include name="jre/lib/ext/sunjce_provider.jar"/>
+      <include name="jre/lib/ext/localedata.jar"/>
+      <include name="jre/lib/ext/sunpkcs11.jar"/>
+      <include name="jre/lib/ext/sunec.jar"/>
+      <include name="jre/lib/ext/dnsns.jar"/>
+    </fileset>
+  </path>
+  
+  <property name="project.jdk.home" value="${jdk.home.1.8}"/>
+  <property name="project.jdk.bin" value="${jdk.bin.1.8}"/>
+  <property name="project.jdk.classpath" value="jdk.classpath.1.8"/>
+  
+  
+  <!-- Project Libraries -->
+  
+  <path id="library.appengine_api.classpath">
+    <fileset dir="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/appengine-endpoints/v1">
+      <patternset refid="library.patterns"/>
+    </fileset>
+    <fileset dir="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/jsr107/v1">
+      <patternset refid="library.patterns"/>
+    </fileset>
+    <fileset dir="${basedir}/../../../../etc/google-app-engine-sdk/lib/user">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="library.gcm-server.classpath">
+    <pathelement location="${basedir}/lib/gcm-server.jar"/>
+  </path>
+  
+  
+  <!-- Global Libraries -->
+  
+  
+  <!-- Application Server Libraries -->
+  
+  <path id="library.appengine_dev_1.9.17.classpath">
+    <pathelement location="/etc/google-app-engine-sdk/lib/shared/appengine-local-runtime-shared.jar"/>
+    <pathelement location="/etc/google-app-engine-sdk/lib/shared/el-api.jar"/>
+    <pathelement location="/etc/google-app-engine-sdk/lib/shared/jsp-api.jar"/>
+    <pathelement location="/etc/google-app-engine-sdk/lib/shared/servlet-api.jar"/>
+  </path>
+  <!-- Register Custom Compiler Taskdefs -->
+  <property name="javac2.home" value="${idea.home}/lib"/>
+  <path id="javac2.classpath">
+    <pathelement location="${javac2.home}/javac2.jar"/>
+    <pathelement location="${javac2.home}/jdom.jar"/>
+    <pathelement location="${javac2.home}/asm-all.jar"/>
+    <pathelement location="${javac2.home}/jgoodies-forms.jar"/>
+  </path>
+  <target name="register.custom.compilers">
+    <taskdef name="javac2" classname="com.intellij.ant.Javac2" classpathref="javac2.classpath"/>
+    <taskdef name="instrumentIdeaExtensions" classname="com.intellij.ant.InstrumentIdeaExtensions" classpathref="javac2.classpath"/>
+  </target>
+  
+  <!-- Modules -->
+  
+  <import file="${basedir}/module_httpserver.xml"/>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.httpserver, clean.artifact.httpserver:war_exploded" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.httpserver" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.httpserver:war_exploded" value="${basedir}/out/artifacts/HTTPServer_war_exploded"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="clean.artifact.httpserver:war_exploded" description="clean HTTPServer:war exploded artifact output">
+    <delete dir="${artifact.output.httpserver:war_exploded}"/>
+  </target>
+  
+  <target name="artifact.httpserver:war_exploded" depends="init.artifacts, compile.module.httpserver" description="Build &#39;HTTPServer:war exploded&#39; artifact">
+    <mkdir dir="${artifact.output.httpserver:war_exploded}"/>
+    <copy todir="${artifact.output.httpserver:war_exploded}">
+      <fileset dir="${basedir}/web"/>
+    </copy>
+    <mkdir dir="${artifact.output.httpserver:war_exploded}/WEB-INF"/>
+    <copy file="${basedir}/web/WEB-INF/web.xml" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/web.xml"/>
+    <mkdir dir="${artifact.output.httpserver:war_exploded}/WEB-INF"/>
+    <mkdir dir="${artifact.output.httpserver:war_exploded}/WEB-INF/classes"/>
+    <copy todir="${artifact.output.httpserver:war_exploded}/WEB-INF/classes">
+      <fileset dir="${httpserver.output.dir}"/>
+    </copy>
+    <mkdir dir="${artifact.output.httpserver:war_exploded}/WEB-INF/lib"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/user/libservice.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/libservice.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/user/jsr107cache-1.1.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/jsr107cache-1.1.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/user/appengine-api-labs-1.9.17.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-api-labs-1.9.17.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/user/appengine-api-1.0-sdk-1.9.17.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-api-1.0-sdk-1.9.17.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/user/appengine-jsr107cache-1.9.17.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-jsr107cache-1.9.17.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/appengine-endpoints/v1/appengine-endpoints.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-endpoints.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/appengine-endpoints/v1/appengine-endpoints-deps.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-endpoints-deps.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/jsr107/v1/jsr107cache-1.1.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/jsr107cache-1.1.jar"/>
+    <copy file="${basedir}/../../../../etc/google-app-engine-sdk/lib/opt/user/jsr107/v1/appengine-jsr107cache-1.9.17.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/appengine-jsr107cache-1.9.17.jar"/>
+    <copy file="${basedir}/lib/gcm-server.jar" tofile="${artifact.output.httpserver:war_exploded}/WEB-INF/lib/gcm-server.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.httpserver:war_exploded" description="Build all artifacts">
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
+</project>

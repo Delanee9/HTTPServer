@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+    <servlet>
+        <servlet-name>register</servlet-name>
+        <servlet-class>RegisterServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>unregister</servlet-name>
+        <servlet-class>UnregisterServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>home</servlet-name>
+        <servlet-class>HomeServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>add</servlet-name>
+        <servlet-class>AddServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>remove</servlet-name>
+        <servlet-class>RemoveServlet</servlet-class>
+    </servlet>
+
+    <servlet>
+        <servlet-name>update</servlet-name>
+        <servlet-class>UpdateServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>register</servlet-name>
+        <url-pattern>/register</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>home</servlet-name>
+        <url-pattern>/home</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>unregister</servlet-name>
+        <url-pattern>/unregister</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>add</servlet-name>
+        <url-pattern>/add</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>remove</servlet-name>
+        <url-pattern>/remove</url-pattern>
+    </servlet-mapping>
+
+    <servlet-mapping>
+        <servlet-name>update</servlet-name>
+        <url-pattern>/update</url-pattern>
+    </servlet-mapping>
+</web-app>
