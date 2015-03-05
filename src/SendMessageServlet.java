@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -41,14 +42,14 @@ public class SendMessageServlet extends BaseServlet {
     }
 
     /**
-     * Indicates to App Engine that this task should be retried.
+     * Notifies the App Engine that this task should be retried.
      */
     private void retryTask(HttpServletResponse resp) {
         resp.setStatus(500);
     }
 
     /**
-     * Indicates to App Engine that this task has been completed.
+     * Notifies the App Engine that this task has been completed.
      */
     private void taskDone(HttpServletResponse resp) {
         resp.setStatus(200);
@@ -126,7 +127,7 @@ public class SendMessageServlet extends BaseServlet {
 
     private void sendMulticastMessage(String multicastKey, HttpServletResponse resp) {
         // Recover registration ids from datastore
-        List<String> regIds = Datastore.getMulticast(multicastKey);
+        List<String> regIds = Arrays.asList(multicastKey.split("-"));
         Message message = createMessage();
         MulticastResult multicastResult;
         try {

@@ -19,6 +19,7 @@ final class Datastore {
     private static final String DEVICE_REG_ID_PROPERTY = "regId";
     private static final String DEVICE_MOBILE_PROPERTY = "mobile";
     private static final String DEVICE_LOCATION_PROPERTY = "location";
+    private static final String DEVICE_FRIENDS_LIST = "friendsList";
 
     private static final String MULTICAST_TYPE = "Multicast";
     private static final String MULTICAST_REG_IDS_PROPERTY = "regIds";
@@ -282,7 +283,7 @@ final class Datastore {
         }
     }
 
-    public static List<String> proximityCheck(String regId, String latitude, String longitude) {
+    public static List<String> proximityCheck(String regId, String location) {
         Query.Filter propertyFilter = new Query.FilterPredicate(Entity.KEY_RESERVED_PROPERTY, FilterOperator.EQUAL, KeyFactory.createKey(DEVICE_TYPE, regId));
         Query query = new Query(DEVICE_TYPE).setFilter(propertyFilter);
         PreparedQuery preparedQuery = datastore.prepare(query);
@@ -296,5 +297,59 @@ final class Datastore {
             logger.severe("Found " + size + " entities for regId " + regId + ": " + entities);
         }
         return null;
+    }
+
+    public static void removeFriends(String regId, String friendsList) {
+        logger.info("Removing friends from " + regId);
+        Transaction transaction = datastore.beginTransaction();
+        try {
+            Entity entity = findDeviceByRegId(regId);
+            if(entity == null) {
+                logger.warning("No device for registration id " + regId);
+                return;
+            }
+
+            String list = entity.getProperty(DEVICE_FRIENDS_LIST).toString();
+            for(String item : friendsList.split("-")) {
+                if(!list.contains(item) && !item.isEmpty()) {
+                    list = list.replace("$" + item + "$", "");
+                }
+            }
+
+            entity.setProperty(DEVICE_FRIENDS_LIST, list);
+            datastore.put(entity);
+            transaction.commit();
+        } finally {
+            if(transaction.isActive()) {
+                transaction.rollback();
+            }
+        }
+    }
+
+    public static void addFriends(String regId, String friendsList) {
+        logger.info("Adding friends to " + regId);
+        Transaction transaction = datastore.beginTransaction();
+        try {
+            Entity entity = findDeviceByRegId(regId);
+            if(entity == null) {
+                logger.warning("No device for registration id " + regId);
+                return;
+            }
+
+            String list = entity.getProperty(DEVICE_FRIENDS_LIST).toString();
+            for(String item : friendsList.split("-")) {
+                if(!list.contains(item) && !item.isEmpty()) {
+                    list = list + "$" + item + "$";
+                }
+            }
+
+            entity.setProperty(DEVICE_FRIENDS_LIST, list);
+            datastore.put(entity);
+            transaction.commit();
+        } finally {
+            if(transaction.isActive()) {
+                transaction.rollback();
+            }
+        }
     }
 }

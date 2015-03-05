@@ -1,6 +1,7 @@
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.crypto.Data;
 import java.io.IOException;
 
 /**
@@ -17,6 +18,7 @@ public class UpdateServlet extends BaseServlet {
         String regId = getParameter(req, PARAMETER_REG_ID);
         String location = getParameter(req, PARAMETER_LOCATION);
         Datastore.updateLocation(regId, location);
+        Datastore.proximityCheck(regId, location);
         setSuccess(resp);
     }
 }

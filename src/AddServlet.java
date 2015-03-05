@@ -8,11 +8,13 @@ import javax.servlet.http.HttpServletResponse;
 public class AddServlet extends BaseServlet {
 
     private static final String PARAMETER_REG_ID = "regId";
+    private static final String PARAMETER_FRIENDS_LIST = "friendsList";
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
         String regId = getParameter(req, PARAMETER_REG_ID);
+        String friendsList = getParameter(req, PARAMETER_FRIENDS_LIST);
+        Datastore.addFriends(regId, friendsList);
         setSuccess(resp);
     }
 }
-
