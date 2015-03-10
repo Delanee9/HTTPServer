@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 @SuppressWarnings("serial")
 abstract class BaseServlet extends HttpServlet {
 
-    // change to true to allow GET calls
     private static final boolean DEBUG = true;
 
     final Logger logger = Logger.getLogger(getClass().getName());
@@ -26,6 +25,14 @@ abstract class BaseServlet extends HttpServlet {
         }
     }
 
+    /**
+     * Retrieve parameter from http request
+     *
+     * @param req       HttpServletRequest
+     * @param parameter String
+     * @return String
+     * @throws ServletException
+     */
     protected String getParameter(HttpServletRequest req, String parameter) throws ServletException {
         String value = req.getParameter(parameter);
         if(isEmptyOrNull(value)) {
@@ -45,26 +52,34 @@ abstract class BaseServlet extends HttpServlet {
         return value.trim();
     }
 
-    protected String getParameter(HttpServletRequest req, String parameter, String defaultValue) {
-        String value = req.getParameter(parameter);
-        if(isEmptyOrNull(value)) {
-            value = defaultValue;
-        }
-        return value.trim();
-    }
-
+    /**
+     * Set the HTTP response code
+     *
+     * @param resp HttpServletResponse
+     */
     void setSuccess(HttpServletResponse resp) {
         setSuccess(resp, 0);
     }
 
+    /**
+     * Set the HTTP response code
+     *
+     * @param resp HttpServletResponse
+     * @param size int
+     */
     void setSuccess(HttpServletResponse resp, int size) {
         resp.setStatus(HttpServletResponse.SC_OK);
         resp.setContentType("text/plain");
         resp.setContentLength(size);
     }
 
+    /**
+     * Checks if a string value is null or empty
+     *
+     * @param value String
+     * @return boolean
+     */
     boolean isEmptyOrNull(String value) {
         return value == null || value.trim().isEmpty();
     }
-
 }

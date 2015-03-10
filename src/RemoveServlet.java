@@ -1,7 +1,8 @@
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
  * Removes a friend or a list of friends from a Users friend list.
@@ -9,13 +10,13 @@ import java.io.IOException;
 @SuppressWarnings("serial")
 public class RemoveServlet extends BaseServlet {
 
-    private static final String PARAMETER_REG_ID = "regId";
-    private static final String PARAMETER_FRIENDS_LIST = "friendsList";
+    private static final String REGISTRATION_ID = "regId";
+    private static final String FRIENDS_LIST = "friendsList";
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-        String regId = getParameter(req, PARAMETER_REG_ID);
-        String friendsList = getParameter(req, PARAMETER_FRIENDS_LIST);
+        String regId = getParameter(req, REGISTRATION_ID);
+        HashSet<String> friendsList = new HashSet<>(Arrays.asList(getParameter(req, FRIENDS_LIST).split(",")));
         Datastore.removeFriends(regId, friendsList);
         setSuccess(resp);
     }

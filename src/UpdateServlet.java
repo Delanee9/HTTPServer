@@ -1,8 +1,6 @@
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.crypto.Data;
-import java.io.IOException;
 
 /**
  * Updates a users location and saves the changes to the database.
@@ -10,15 +8,15 @@ import java.io.IOException;
 @SuppressWarnings("serial")
 public class UpdateServlet extends BaseServlet {
 
-    private static final String PARAMETER_REG_ID = "regId";
-    private static final String PARAMETER_LOCATION = "location";
+    private static final String REGISTRATION_ID = "regId";
+    private static final String LOCATION = "location";
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException {
-        String regId = getParameter(req, PARAMETER_REG_ID);
-        String location = getParameter(req, PARAMETER_LOCATION);
+        String regId = getParameter(req, REGISTRATION_ID);
+        String location = getParameter(req, LOCATION);
         Datastore.updateLocation(regId, location);
-        Datastore.proximityCheck(regId, location);
+//        Datastore.proximityCheck(regId, location);
         setSuccess(resp);
     }
 }
