@@ -16,7 +16,7 @@ public class UpdateServlet extends BaseServlet {
         String regId = getParameter(req, REGISTRATION_ID);
         String location = getParameter(req, LOCATION);
         Datastore.updateLocation(regId, location);
-//        Datastore.proximityCheck(regId, location);
+        Datastore.proximityCheck(regId);
         setSuccess(resp);
     }
 }

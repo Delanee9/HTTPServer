@@ -25,13 +25,13 @@
     </servlet>
 
     <servlet>
-        <servlet-name>remove</servlet-name>
-        <servlet-class>RemoveServlet</servlet-class>
+        <servlet-name>update</servlet-name>
+        <servlet-class>UpdateServlet</servlet-class>
     </servlet>
 
     <servlet>
-        <servlet-name>update</servlet-name>
-        <servlet-class>UpdateServlet</servlet-class>
+        <servlet-name>send</servlet-name>
+        <servlet-class>SendMessageServlet</servlet-class>
     </servlet>
 
     <servlet-mapping>
@@ -55,12 +55,12 @@
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>remove</servlet-name>
-        <url-pattern>/remove</url-pattern>
+        <servlet-name>update</servlet-name>
+        <url-pattern>/update</url-pattern>
     </servlet-mapping>
 
     <servlet-mapping>
-        <servlet-name>update</servlet-name>
-        <url-pattern>/update</url-pattern>
+        <servlet-name>send</servlet-name>
+        <url-pattern>/send</url-pattern>
     </servlet-mapping>
 </web-app>

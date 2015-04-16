@@ -1,5 +1,8 @@
 import com.google.appengine.api.datastore.*;
 
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -17,8 +20,7 @@ final class Datastore {
     private static final String MOBILE_NUMBER = "mobile";
     private static final String LOCATION = "location";
     private static final String FRIENDS_LIST = "friendsList";
-
-    private static final String MULTICAST_REG_IDS_PROPERTY = "regIds";
+    private static final String PARAMETER_MULTICAST = "multicastKey";
 
     private static final FetchOptions DEFAULT_FETCH_OPTIONS = FetchOptions.Builder.withPrefetchSize(MULTICAST_SIZE).chunkSize(MULTICAST_SIZE);
 
@@ -47,54 +49,6 @@ final class Datastore {
             }
         }
     }
-
-    /**
-     * Updates a persistent record with the devices to be notified using a
-     * multicast message.
-     *
-     * @param encodedKey encoded key for the persistent record.
-     * @param devices    new list of registration ids of the devices.
-     */
-    public static void updateMulticast(String encodedKey, List<String> devices) {
-        Key key = KeyFactory.stringToKey(encodedKey);
-        Entity entity;
-        Transaction transaction = datastore.beginTransaction();
-        try {
-            try {
-                entity = datastore.get(key);
-            } catch(EntityNotFoundException e) {
-                logger.severe("No entity for key " + key);
-                return;
-            }
-            entity.setProperty(MULTICAST_REG_IDS_PROPERTY, devices);
-            datastore.put(entity);
-            transaction.commit();
-        } finally {
-            if(transaction.isActive()) {
-                transaction.rollback();
-            }
-        }
-    }
-
-    /**
-     * Deletes a persistent record with the devices to be notified using a
-     * multicast message.
-     *
-     * @param encodedKey encoded key for the persistent record.
-     */
-    public static void deleteMulticast(String encodedKey) {
-        Transaction transaction = datastore.beginTransaction();
-        try {
-            Key key = KeyFactory.stringToKey(encodedKey);
-            datastore.delete(key);
-            transaction.commit();
-        } finally {
-            if(transaction.isActive()) {
-                transaction.rollback();
-            }
-        }
-    }
-
 
     //-----------------------------Complete--------------------------------------------------------
 
@@ -182,42 +136,6 @@ final class Datastore {
     }
 
     /**
-     * Remove friends from friend list.
-     *
-     * @param regId       String
-     * @param friendsList List<String>
-     */
-    @SuppressWarnings("unchecked")
-    public static void removeFriends(String regId, HashSet<String> friendsList) {
-        logger.info("Removing friends from " + regId);
-        Transaction transaction = datastore.beginTransaction();
-        ArrayList<String> list;
-        try {
-            Entity entity = findDeviceByRegId(regId);
-            if(entity == null) {
-                logger.warning("No device for registration id " + regId);
-                return;
-            }
-            list = (ArrayList<String>) (entity.getProperty(FRIENDS_LIST));
-            if(list == null) {
-                list = new ArrayList<>();
-            }
-            list.removeAll(friendsList);
-
-            entity.setProperty(FRIENDS_LIST, list);
-            datastore.put(entity);
-            transaction.commit();
-            System.out.println("works");
-        } catch(Exception e) {
-            logger.severe("Failure in removeFriends - " + e);
-        } finally {
-            if(transaction.isActive()) {
-                transaction.rollback();
-            }
-        }
-    }
-
-    /**
      * Add friends to friends list.
      *
      * @param regId       String
@@ -238,6 +156,7 @@ final class Datastore {
             if(list == null) {
                 list = new ArrayList<>();
             }
+            list.clear();
             list.addAll(friendsList);
 
             entity.setProperty(FRIENDS_LIST, list);
@@ -283,55 +202,49 @@ final class Datastore {
      * Check the proximity of friends and return a list of close friends.
      *
      * @param regId   String
-     * @param friends ArrayList<String>
      * @return List
      */
-    public static List<String> proximityCheck(String regId, ArrayList<String> friends) {
+    @SuppressWarnings("unchecked")
+    public static List<String> proximityCheck(String regId) {
         logger.info("Checking proximity " + regId);
-        Key key = KeyFactory.createKey(DEVICE_TYPE, regId);
+
         Transaction transaction = datastore.beginTransaction();
-        List<String> closeFriends = new ArrayList<>();
+        List<String> closeFriends;
+        List<String> friendsToContact = new ArrayList<>();
+        Entity friend;
         try {
-            Point userLocation = new Point(datastore.get(key).getProperty(LOCATION).toString());
-            for(String item : friends) {
-                Point friendLocation = new Point(datastore.get(KeyFactory.stringToKey(item)).getProperty(LOCATION).toString());
-                if(new Proximity(userLocation, friendLocation).inCloseProximity()) {
-                    closeFriends.add(item);
+            Entity entity = findDeviceByRegId(regId);
+            closeFriends = (ArrayList<String>) (entity.getProperty(FRIENDS_LIST));
+
+            Point userLocation = new Point(entity.getProperty(LOCATION).toString());
+            for(String item : closeFriends) {
+                friend = findDeviceByMobile(item);
+                if(friend != null) {
+                    Point friendLocation = new Point(friend.getProperty(LOCATION).toString());
+                    if(new Proximity(userLocation, friendLocation).inCloseProximity()) {
+                        friendsToContact.add("," + item);
+                    }
                 }
             }
+
+            if(!friendsToContact.isEmpty()) {
+                URL url = new URL("/send");
+                HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                con.setDoOutput(true);
+                con.setRequestMethod("POST");
+
+                OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
+                writer.write("from=" + entity.getProperty(MOBILE_NUMBER).toString());
+                writer.write(PARAMETER_MULTICAST + "=" + friendsToContact.toString());
+                writer.close();
+
+                con.getResponseCode();
+            }
+
             transaction.commit();
             return closeFriends;
         } catch(Exception e) {
             logger.severe("Failure in proximityCheck - " + e);
-            return Collections.emptyList();
-        } finally {
-            if(transaction.isActive()) {
-                transaction.rollback();
-            }
-        }
-    }
-
-    /**
-     * Find friends that are registered on the database.
-     *
-     * @param friends ArrayList
-     * @return List
-     */
-    public static List<String> findFriends(ArrayList<String> friends) {
-        logger.info("Checking registered friends ");
-        Transaction transaction = datastore.beginTransaction();
-        List<String> closeFriends = new ArrayList<>();
-        try {
-            for(String item : friends) {
-                String friend = datastore.get(KeyFactory.createKey(DEVICE_TYPE, item)).getProperty(LOCATION).toString();
-                if(friend != null) {
-                    closeFriends.add(item);
-                }
-            }
-            transaction.commit();
-            return closeFriends;
-        } catch(Exception e) {
-            logger.severe("Failure in findFriends - " + e);
             return Collections.emptyList();
         } finally {
             if(transaction.isActive()) {
@@ -356,8 +269,30 @@ final class Datastore {
             entity = entities.get(0);
         }
         int size = entities.size();
-        if(size > 0) {
+        if(size > 1) {
             logger.info("Found " + size + " entities for regId " + regId + ": " + entities);
+        }
+        return entity;
+    }
+
+    /**
+     * Find user information from the mobile number.
+     *
+     * @param mobile String
+     * @return Entity
+     */
+    private static Entity findDeviceByMobile(String mobile) {
+        Query.Filter propertyFilter = new Query.FilterPredicate(MOBILE_NUMBER, Query.FilterOperator.EQUAL, mobile);
+        Query query = new Query(DEVICE_TYPE).setFilter(propertyFilter);
+        PreparedQuery preparedQuery = datastore.prepare(query);
+        List<Entity> entities = preparedQuery.asList(DEFAULT_FETCH_OPTIONS);
+        Entity entity = null;
+        if(!entities.isEmpty()) {
+            entity = entities.get(0);
+        }
+        int size = entities.size();
+        if(size > 1) {
+            logger.info("Found " + size + " entities for regId " + mobile + ": " + entities);
         }
         return entity;
     }

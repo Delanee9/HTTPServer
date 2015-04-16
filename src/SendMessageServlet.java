@@ -22,7 +22,6 @@ public class SendMessageServlet extends BaseServlet {
     private static final String HEADER_QUEUE_NAME = "X-AppEngine-QueueName";
     private static final int MAX_RETRY = 3;
 
-    private static final String PARAMETER_DEVICE = "device";
     private static final String PARAMETER_MULTICAST = "multicastKey";
 
     private Sender sender;
@@ -73,11 +72,6 @@ public class SendMessageServlet extends BaseServlet {
                 return;
             }
         }
-        String regId = req.getParameter(PARAMETER_DEVICE);
-        if(regId != null) {
-            sendSingleMessage(regId, resp);
-            return;
-        }
         String multicastKey = req.getParameter(PARAMETER_MULTICAST);
         if(multicastKey != null) {
             sendMulticastMessage(multicastKey, resp);
@@ -91,54 +85,17 @@ public class SendMessageServlet extends BaseServlet {
         return new Message.Builder().build();
     }
 
-    private void sendSingleMessage(String regId, HttpServletResponse resp) {
-        logger.info("Sending message to device " + regId);
-        Message message = createMessage();
-        Result result;
-        try {
-            result = sender.sendNoRetry(message, regId);
-        } catch(IOException e) {
-            logger.log(Level.SEVERE, "Exception posting " + message, e);
-            taskDone(resp);
-            return;
-        }
-        if(result == null) {
-            retryTask(resp);
-            return;
-        }
-        if(result.getMessageId() != null) {
-            logger.info("Successfully sent message to device " + regId);
-            String canonicalRegId = result.getCanonicalRegistrationId();
-            if(canonicalRegId != null) {
-                // same device has more than on registration id: update it
-                logger.finest("canonicalRegId " + canonicalRegId);
-                Datastore.updateRegistration(regId, canonicalRegId);
-            }
-        } else {
-            String error = result.getErrorCodeName();
-            if(error.equals(Constants.ERROR_NOT_REGISTERED)) {
-                // application has been removed from device - unregister it
-                Datastore.unregister(regId);
-            } else {
-                logger.severe("Error sending message to device " + regId + ": " + error);
-            }
-        }
-    }
-
     private void sendMulticastMessage(String multicastKey, HttpServletResponse resp) {
-        // Recover registration ids from datastore
-        List<String> regIds = Arrays.asList(multicastKey.split("-"));
+        List<String> regIds = Arrays.asList(multicastKey.split(","));
         Message message = createMessage();
         MulticastResult multicastResult;
         try {
             multicastResult = sender.sendNoRetry(message, regIds);
         } catch(IOException e) {
             logger.log(Level.SEVERE, "Exception posting " + message, e);
-            multicastDone(resp, multicastKey);
             return;
         }
         boolean allDone = true;
-        // check if any registration id must be updated
         if(multicastResult.getCanonicalIds() != 0) {
             List<Result> results = multicastResult.getResults();
             for(int i = 0; i < results.size(); i++) {
@@ -150,7 +107,6 @@ public class SendMessageServlet extends BaseServlet {
             }
         }
         if(multicastResult.getFailure() != 0) {
-            // there were failures, check if any could be retried
             List<Result> results = multicastResult.getResults();
             List<String> retriableRegIds = new ArrayList<>();
             for(int i = 0; i < results.size(); i++) {
@@ -159,7 +115,6 @@ public class SendMessageServlet extends BaseServlet {
                     String regId = regIds.get(i);
                     logger.warning("Got error (" + error + ") for regId " + regId);
                     if(error.equals(Constants.ERROR_NOT_REGISTERED)) {
-                        // application has been removed from device - unregister it
                         Datastore.unregister(regId);
                     }
                     if(error.equals(Constants.ERROR_UNAVAILABLE)) {
@@ -168,21 +123,12 @@ public class SendMessageServlet extends BaseServlet {
                 }
             }
             if(!retriableRegIds.isEmpty()) {
-                // update tdoPostask
-                Datastore.updateMulticast(multicastKey, retriableRegIds);
                 allDone = false;
                 retryTask(resp);
             }
         }
-        if(allDone) {
-            multicastDone(resp, multicastKey);
-        } else {
+        if(!allDone) {
             retryTask(resp);
         }
-    }
-
-    private void multicastDone(HttpServletResponse resp, String encodedKey) {
-        Datastore.deleteMulticast(encodedKey);
-        taskDone(resp);
     }
 }
