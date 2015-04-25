@@ -10,6 +10,7 @@
         <element id="directory" name="lib">
           <element id="library" level="project" name="AppEngine API" />
           <element id="library" level="project" name="gcm-server" />
+          <element id="library" level="application" name="junit:junit:4.12" />
         </element>
       </element>
     </root>

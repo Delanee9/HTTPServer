@@ -22,6 +22,8 @@ public class SendMessageServlet extends BaseServlet {
     private static final String HEADER_QUEUE_NAME = "X-AppEngine-QueueName";
     private static final int MAX_RETRY = 3;
 
+    private static final String MOBILE_NUMBER = "mobile";
+    private static final String LOCATION = "location";
     private static final String PARAMETER_MULTICAST = "multicastKey";
 
     private Sender sender;
@@ -73,21 +75,24 @@ public class SendMessageServlet extends BaseServlet {
             }
         }
         String multicastKey = req.getParameter(PARAMETER_MULTICAST);
+        String location = req.getParameter(LOCATION);
+        String from = req.getParameter(MOBILE_NUMBER);
+
         if(multicastKey != null) {
-            sendMulticastMessage(multicastKey, resp);
+            sendMulticastMessage(from, location, multicastKey, resp);
             return;
         }
         logger.severe("Invalid request!");
         taskDone(resp);
     }
 
-    private Message createMessage() {
-        return new Message.Builder().build();
+    private Message createMessage(String from, String location) {
+        return new Message.Builder().addData(LOCATION, location).addData(MOBILE_NUMBER, from).build();
     }
 
-    private void sendMulticastMessage(String multicastKey, HttpServletResponse resp) {
+    private void sendMulticastMessage(String from, String location, String multicastKey, HttpServletResponse resp) {
         List<String> regIds = Arrays.asList(multicastKey.split(","));
-        Message message = createMessage();
+        Message message = createMessage(from, location);
         MulticastResult multicastResult;
         try {
             multicastResult = sender.sendNoRetry(message, regIds);

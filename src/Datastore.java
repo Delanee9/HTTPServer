@@ -234,7 +234,8 @@ final class Datastore {
                 con.setRequestMethod("POST");
 
                 OutputStreamWriter writer = new OutputStreamWriter(con.getOutputStream());
-                writer.write("from=" + entity.getProperty(MOBILE_NUMBER).toString());
+                writer.write(MOBILE_NUMBER + "=" + entity.getProperty(MOBILE_NUMBER).toString());
+                writer.write(LOCATION + "=" + entity.getProperty(LOCATION).toString());
                 writer.write(PARAMETER_MULTICAST + "=" + friendsToContact.toString());
                 writer.close();
 
